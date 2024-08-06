@@ -14,7 +14,7 @@ PLEASE FILL OUT THIS SECTION PRIOR TO SUBMISSION
     Met all requirements
 
 - Did you do any optional enhancements? If so, please explain:
-    Yes, created a feature to prompt the user if they wanted to filter the image by a certain process (like turn it into a rose filter, or vignette, or invert colors, etc.)
+    Yes, created a feature to prompt the user which instagram filter to use on the the 10 images (like turn it into a rose filter, or vignette, or invert colors, etc.)
 */
 
 #include <iostream>  // Includes the input-output stream library for standard I/O operations
@@ -236,143 +236,541 @@ bool write_image(string filename, const vector<vector<Pixel>> &image)
 //                                DO NOT MODIFY THE SECTION ABOVE                                    //
 //***************************************************************************************************//
 
-// function to process the image by inverting the colors of each pixel
-vector<vector<Pixel>> invert_colors(const vector<vector<Pixel>> &image)
+#include <iostream>
+#include <vector>
+#include <fstream>
+#include <cmath>
+#include <algorithm>
+using namespace std;
+
+#include <iostream>
+#include <vector>
+#include <fstream>
+#include <cmath>
+#include <algorithm>
+using namespace std;
+
+// Function prototypes
+vector<vector<Pixel>> read_image(string filename);
+bool write_image(string filename, const vector<vector<Pixel>> &image);
+vector<vector<Pixel>> process_1(const vector<vector<Pixel>> &image);
+vector<vector<Pixel>> process_2(const vector<vector<Pixel>> &image);
+vector<vector<Pixel>> process_3(const vector<vector<Pixel>> &image);
+vector<vector<Pixel>> process_4(const vector<vector<Pixel>> &image);
+vector<vector<Pixel>> process_5(const vector<vector<Pixel>> &image);
+vector<vector<Pixel>> process_6(const vector<vector<Pixel>> &image);
+vector<vector<Pixel>> process_7(const vector<vector<Pixel>> &image);
+vector<vector<Pixel>> process_8(const vector<vector<Pixel>> &image);
+vector<vector<Pixel>> process_9(const vector<vector<Pixel>> &image);
+vector<vector<Pixel>> process_10(const vector<vector<Pixel>> &image);
+vector<vector<Pixel>> process_11(const vector<vector<Pixel>> &image);
+
+vector<vector<Pixel>> rotate_90_degrees(const vector<vector<Pixel>> &image);
+
+void display_menu()
 {
-    int num_rows = image.size();
-    int num_columns = image[0].size();
-    vector<vector<Pixel>> processed_image(num_rows, vector<Pixel>(num_columns));
-    for (int i = 0; i < num_rows; i++)
-    {
-        for (int j = 0; j < num_columns; j++)
-        {
-            Pixel current_pixel = image[i][j];
-            Pixel new_pixel;
-            new_pixel.red = 255 - current_pixel.red;
-            new_pixel.green = 255 - current_pixel.green;
-            new_pixel.blue = 255 - current_pixel.blue;
-            processed_image[i][j] = new_pixel;
-        }
-    }
-    return processed_image;
+    cout << "Image Processing Menu" << endl;
+    cout << "1. Add vignette" << endl;
+    cout << "2. Add Clarendon effect" << endl;
+    cout << "3. Convert to grayscale" << endl;
+    cout << "4. Rotate image 90 degrees clockwise" << endl;
+    cout << "5. Rotate image multiples of 90 degrees clockwise" << endl;
+    cout << "6. Enlarge the image in the x and y direction" << endl;
+    cout << "7. Convert image to high contrast" << endl;
+    cout << "8. Lighten the image by a scaling factor" << endl;
+    cout << "9. Darken the image by a scaling factor" << endl;
+    cout << "10. Convert image to black, white, red, blue, and green" << endl;
+    cout << "11. Turn image into cream pink" << endl;
+    cout << "Q. Quit" << endl;
+    cout << "Enter your choice: ";
 }
 
-// function to process the image by tinting it into sailormoon pink
-// to turn it pink, you need rgb values at 100% red, 75.3% green, 79.6% blue
-vector<vector<Pixel>> tint_pink(const vector<vector<Pixel>> &image)
+vector<vector<Pixel>> process_1(const vector<vector<Pixel>> &image)
 {
     int num_rows = image.size();
     int num_columns = image[0].size();
-    vector<vector<Pixel>> processed_image(num_rows, vector<Pixel>(num_columns));
-    for (int i = 0; i < num_rows; i++)
-    {
-        for (int j = 0; j < num_columns; j++)
-        {
-            Pixel current_pixel = image[i][j];
-            Pixel new_pixel;
-            new_pixel.red = min(255, current_pixel.red + 50);   // after many trial and error, this is the closest i can get to pink without it looking like brown/orange
-            new_pixel.green = max(0, current_pixel.green - 30); // this was previously 100, -30, -50
-            new_pixel.blue = max(0, current_pixel.blue - 50);
-            processed_image[i][j] = new_pixel;
-        }
-    }
-    return processed_image;
-}
+    vector<vector<Pixel>> new_image(num_rows, vector<Pixel>(num_columns));
 
-// function to apply a vignette effect to the image
-vector<vector<Pixel>> apply_vignette(const vector<vector<Pixel>> &image)
-{
-    int num_rows = image.size();
-    int num_columns = image[0].size();
-    vector<vector<Pixel>> processed_image(num_rows, vector<Pixel>(num_columns));
     double center_x = num_columns / 2.0;
     double center_y = num_rows / 2.0;
-    double max_distance = sqrt(center_x * center_x + center_y * center_y);
+
+    for (int row = 0; row < num_rows; ++row)
+    {
+        for (int col = 0; col < num_columns; ++col)
+        {
+            Pixel p = image[row][col];
+            double distance = sqrt(pow(col - center_x, 2) + pow(row - center_y, 2));
+            double scaling_factor = (num_rows - distance) / num_rows;
+            int new_red = static_cast<int>(p.red * scaling_factor);
+            int new_green = static_cast<int>(p.green * scaling_factor);
+            int new_blue = static_cast<int>(p.blue * scaling_factor);
+            new_image[row][col] = {new_red, new_green, new_blue};
+        }
+    }
+    return new_image;
+}
+
+vector<vector<Pixel>> process_2(const vector<vector<Pixel>> &image)
+{
+    int width = image[0].size();
+    int height = image.size();
+    double scaling_factor = 0.3;
+    vector<vector<Pixel>> new_image(height, vector<Pixel>(width));
+
+    for (int row = 0; row < height; ++row)
+    {
+        for (int col = 0; col < width; ++col)
+        {
+            Pixel p = image[row][col];
+
+            // Get the red, green, and blue values
+            int red_value = p.red;
+            int green_value = p.green;
+            int blue_value = p.blue;
+
+            // Calculate the average value
+            double average_value = (red_value + green_value + blue_value) / 3.0;
+
+            // Apply Clarendon effect
+            int new_red, new_green, new_blue;
+
+            // Light cells
+            if (average_value >= 170)
+            {
+                new_red = static_cast<int>(255 - (255 - red_value) * scaling_factor);
+                new_green = static_cast<int>(255 - (255 - green_value) * scaling_factor);
+                new_blue = static_cast<int>(255 - (255 - blue_value) * scaling_factor);
+            }
+            // Dark cells
+            else if (average_value < 90)
+            {
+                new_red = static_cast<int>(red_value * scaling_factor);
+                new_green = static_cast<int>(green_value * scaling_factor);
+                new_blue = static_cast<int>(blue_value * scaling_factor);
+            }
+            // Mid-range cells
+            else
+            {
+                new_red = red_value;
+                new_green = green_value;
+                new_blue = blue_value;
+            }
+
+            // Set the new pixel in the new image
+            new_image[row][col] = {new_red, new_green, new_blue};
+        }
+    }
+
+    return new_image;
+}
+
+vector<vector<Pixel>> process_3(const vector<vector<Pixel>> &image)
+{
+    int width = image[0].size();
+    int height = image.size();
+    vector<vector<Pixel>> new_image(height, vector<Pixel>(width));
+
+    for (int row = 0; row < height; ++row)
+    {
+        for (int col = 0; col < width; ++col)
+        {
+            Pixel p = image[row][col];
+
+            // Get the red, green, and blue values
+            int red_value = p.red;
+            int green_value = p.green;
+            int blue_value = p.blue;
+
+            // Calculate the grayscale value
+            int gray_value = (red_value + green_value + blue_value) / 3;
+
+            // Set new color values to be the grayscale value
+            Pixel new_pixel;
+            new_pixel.red = gray_value;
+            new_pixel.green = gray_value;
+            new_pixel.blue = gray_value;
+
+            // Set the new pixel in the new image
+            new_image[row][col] = new_pixel;
+        }
+    }
+
+    return new_image;
+}
+
+vector<vector<Pixel>> process_4(const vector<vector<Pixel>> &image)
+{
+    int width = image[0].size();
+    int height = image.size();
+    vector<vector<Pixel>> new_image(width, vector<Pixel>(height)); // Note the width and height are swapped
+
+    for (int row = 0; row < height; ++row)
+    {
+        for (int col = 0; col < width; ++col)
+        {
+            Pixel p = image[row][col];
+            new_image[col][(height - 1) - row] = p; // Rotate 90 degrees clockwise
+        }
+    }
+
+    return new_image;
+}
+
+vector<vector<Pixel>> rotate_by_90(const vector<vector<Pixel>> &image)
+{
+    int width = image[0].size();
+    int height = image.size();
+    vector<vector<Pixel>> new_image(width, vector<Pixel>(height)); // Note the width and height are swapped
+
+    for (int row = 0; row < height; ++row)
+    {
+        for (int col = 0; col < width; ++col)
+        {
+            Pixel p = image[row][col];
+            new_image[col][(height - 1) - row] = p; // Rotate 90 degrees clockwise
+        }
+    }
+
+    return new_image;
+}
+
+vector<vector<Pixel>> process_5(const vector<vector<Pixel>> &image)
+{
+    int num_rotations;
+    cout << "Enter the number of 90-degree rotations (clockwise): ";
+    cin >> num_rotations;
+
+    // Normalize the number of rotations to be between 0 and 3
+    num_rotations = num_rotations % 4;
+
+    if (num_rotations == 0)
+    {
+        return image;
+    }
+    else if (num_rotations == 1)
+    {
+        return rotate_by_90(image);
+    }
+    else if (num_rotations == 2)
+    {
+        return rotate_by_90(rotate_by_90(image));
+    }
+    else
+    {
+        return rotate_by_90(rotate_by_90(rotate_by_90(image)));
+    }
+}
+
+vector<vector<Pixel>> process_6(const vector<vector<Pixel>> &image)
+{
+    int width = image[0].size();
+    int height = image.size();
+    double xscale, yscale;
+
+    cout << "Enter the scaling factor for x direction: ";
+    cin >> xscale;
+    cout << "Enter the scaling factor for y direction: ";
+    cin >> yscale;
+
+    int new_width = static_cast<int>(width * xscale);
+    int new_height = static_cast<int>(height * yscale);
+    vector<vector<Pixel>> new_image(new_height, vector<Pixel>(new_width));
+
+    for (int row = 0; row < new_height; ++row)
+    {
+        for (int col = 0; col < new_width; ++col)
+        {
+            Pixel p = image[static_cast<int>(row / yscale)][static_cast<int>(col / xscale)];
+            new_image[row][col] = p;
+        }
+    }
+
+    return new_image;
+}
+
+vector<vector<Pixel>> process_7(const vector<vector<Pixel>> &image)
+{
+    int width = image[0].size();
+    int height = image.size();
+    vector<vector<Pixel>> new_image(height, vector<Pixel>(width));
+
+    for (int row = 0; row < height; ++row)
+    {
+        for (int col = 0; col < width; ++col)
+        {
+            Pixel p = image[row][col];
+            int red_value = p.red;
+            int green_value = p.green;
+            int blue_value = p.blue;
+
+            // Average the RGB values to get the grayscale value
+            int gray_value = (red_value + green_value + blue_value) / 3;
+
+            Pixel new_pixel;
+            if (gray_value >= 255 / 2)
+            {
+                new_pixel.red = 255;
+                new_pixel.green = 255;
+                new_pixel.blue = 255;
+            }
+            else
+            {
+                new_pixel.red = 0;
+                new_pixel.green = 0;
+                new_pixel.blue = 0;
+            }
+
+            new_image[row][col] = new_pixel;
+        }
+    }
+
+    return new_image;
+}
+
+vector<vector<Pixel>> process_8(const vector<vector<Pixel>> &image)
+{
+    int width = image[0].size();
+    int height = image.size();
+    vector<vector<Pixel>> new_image(height, vector<Pixel>(width));
+
+    double scaling_factor = 0.5; // You can change this to any desired value
+
+    for (int row = 0; row < height; ++row)
+    {
+        for (int col = 0; col < width; ++col)
+        {
+            Pixel p = image[row][col];
+            int red_value = p.red;
+            int green_value = p.green;
+            int blue_value = p.blue;
+
+            int new_red = static_cast<int>(255 - (255 - red_value) * scaling_factor);
+            int new_green = static_cast<int>(255 - (255 - green_value) * scaling_factor);
+            int new_blue = static_cast<int>(255 - (255 - blue_value) * scaling_factor);
+
+            Pixel new_pixel;
+            new_pixel.red = new_red;
+            new_pixel.green = new_green;
+            new_pixel.blue = new_blue;
+
+            new_image[row][col] = new_pixel;
+        }
+    }
+
+    return new_image;
+}
+
+vector<vector<Pixel>> process_9(const vector<vector<Pixel>> &image)
+{
+    int width = image[0].size();
+    int height = image.size();
+    vector<vector<Pixel>> new_image(height, vector<Pixel>(width));
+
+    double scaling_factor = 0.5; // You can change this to any desired value
+
+    for (int row = 0; row < height; ++row)
+    {
+        for (int col = 0; col < width; ++col)
+        {
+            Pixel p = image[row][col];
+            int red_value = p.red;
+            int green_value = p.green;
+            int blue_value = p.blue;
+
+            int new_red = static_cast<int>(red_value * scaling_factor);
+            int new_green = static_cast<int>(green_value * scaling_factor);
+            int new_blue = static_cast<int>(blue_value * scaling_factor);
+
+            Pixel new_pixel;
+            new_pixel.red = new_red;
+            new_pixel.green = new_green;
+            new_pixel.blue = new_blue;
+
+            new_image[row][col] = new_pixel;
+        }
+    }
+
+    return new_image;
+}
+
+vector<vector<Pixel>> process_10(const vector<vector<Pixel>> &image)
+{
+    int num_rows = image.size();
+    int num_columns = image[0].size();
+    vector<vector<Pixel>> processed_image(num_rows, vector<Pixel>(num_columns));
 
     for (int i = 0; i < num_rows; i++)
     {
         for (int j = 0; j < num_columns; j++)
         {
             Pixel current_pixel = image[i][j];
-            double distance = sqrt((j - center_x) * (j - center_x) + (i - center_y) * (i - center_y));
-            double vignette_factor = 1.0 - (distance / max_distance);
-            vignette_factor = pow(vignette_factor, 2.0);
+            int red = current_pixel.red;
+            int green = current_pixel.green;
+            int blue = current_pixel.blue;
+
+            int max_color = max({red, green, blue});
             Pixel new_pixel;
-            new_pixel.red = current_pixel.red * vignette_factor;
-            new_pixel.green = current_pixel.green * vignette_factor;
-            new_pixel.blue = current_pixel.blue * vignette_factor;
+
+            if (red + green + blue >= 550)
+            {
+                new_pixel.red = 255;
+                new_pixel.green = 255;
+                new_pixel.blue = 255;
+            }
+            else if (red + green + blue <= 150)
+            {
+                new_pixel.red = 0;
+                new_pixel.green = 0;
+                new_pixel.blue = 0;
+            }
+            else if (max_color == red)
+            {
+                new_pixel.red = 255;
+                new_pixel.green = 0;
+                new_pixel.blue = 0;
+            }
+            else if (max_color == green)
+            {
+                new_pixel.red = 0;
+                new_pixel.green = 255;
+                new_pixel.blue = 0;
+            }
+            else
+            {
+                new_pixel.red = 0;
+                new_pixel.green = 0;
+                new_pixel.blue = 255;
+            }
+
             processed_image[i][j] = new_pixel;
         }
     }
+
+    return processed_image;
+}
+
+vector<vector<Pixel>> process_11(const vector<vector<Pixel>> &image)
+{
+    int num_rows = image.size();
+    int num_columns = image[0].size();
+    vector<vector<Pixel>> processed_image(num_rows, vector<Pixel>(num_columns));
+
+    for (int i = 0; i < num_rows; i++)
+    {
+        for (int j = 0; j < num_columns; j++)
+        {
+            Pixel current_pixel = image[i][j];
+            Pixel new_pixel;
+
+            // Adjust the pixel values to a cream pink color
+            new_pixel.red = min(255, static_cast<int>(current_pixel.red * 1.3 + 70));
+            new_pixel.green = min(255, static_cast<int>(current_pixel.green * 0.9 + 50));
+            new_pixel.blue = min(255, static_cast<int>(current_pixel.blue * 0.8 + 40));
+
+            processed_image[i][j] = new_pixel;
+        }
+    }
+
     return processed_image;
 }
 
 int main()
 {
-    // fetch the current working directory
-    char cwd[PATH_MAX];
-    if (getcwd(cwd, sizeof(cwd)) != NULL) // if there exists a cwd, we should grab it
+    char quit_choice;
+    int choice;
+    string input_file = "sample_images/sample.bmp";
+    string output_file = "sample_images/output.bmp";
+    vector<vector<Pixel>> image;
+
+    while (true)
     {
-        cout << "current working directory: " << cwd << endl;
-    }
-    else
-    {
-        cerr << "error: problem with finding the cwd" << endl; // throw an error if there is for any reason a problem with returning the path name
-        return 1;
-    }
+        display_menu();
+        cin >> quit_choice;
 
-    // ask/prompt the user on what filter to apply to the images
-    cout << "enter the number corresponding to the filter you want to use on the image:" << endl;
-    cout << "1. invert the image colors" << endl;
-    cout << "2. tint a vaporwave pink" << endl;
-    cout << "3. apply a shadow-y vignette" << endl;
-    int choice; // make sure that the user is not entering a string, and make sure that the choice is valid, as in not entering things like strings or integers above 3 or negatives
-    cin >> choice;
+        if (quit_choice == 'Q' || quit_choice == 'q')
+        {
+            cout << "Thank you for using my program, quitting!" << endl;
+            break;
+        }
+        else
+        {
+            choice = quit_choice - '0'; // Convert char to int
+            if (quit_choice >= '1' && quit_choice <= '9')
+            {
+                choice = quit_choice - '0'; // Single digit choices 1-9
+            }
+            else if (quit_choice == '1' || quit_choice == '0')
+            {
+                choice = 10;
+            }
+            else if (quit_choice == '1' || quit_choice == '1')
+            {
+                choice = 11;
+            }
+            else
+            {
+                cerr << "Invalid choice, please try again." << endl;
+                continue;
+            }
+        }
 
-    // iterate over each image file (this part is hardcoded, but it's fine because we know there are 10 files in the folder)
-    for (int i = 1; i <= 10; ++i)
-    {
-        string input_filename = "sample_images/process" + to_string(i) + ".bmp";
-        string output_filename = "sample_images/output" + to_string(i) + ".bmp";
-
-        // read image file and turn into a 2D vector
-        vector<vector<Pixel>> image = read_image(input_filename);
-
-        // check if the image was read successfully, create an error in case it doesn't read properly
+        image = read_image(input_file);
         if (image.empty())
         {
-            cerr << "error: couldn't read the image file " << input_filename << endl; // honetsly this should never happen but good habit to write this test error
+            cerr << "Error: Could not read the image file " << input_file << endl;
             continue;
         }
 
-        // process the image based on the user's choice
         vector<vector<Pixel>> processed_image;
         switch (choice)
         {
         case 1:
-            processed_image = invert_colors(image);
+            processed_image = process_1(image);
             break;
         case 2:
-            processed_image = tint_pink(image);
+            processed_image = process_2(image);
             break;
         case 3:
-            processed_image = apply_vignette(image);
+            processed_image = process_3(image);
+            break;
+        case 4:
+            processed_image = process_4(image);
+            break;
+        case 5:
+            processed_image = process_5(image);
+            break;
+        case 6:
+            processed_image = process_6(image);
+            break;
+        case 7:
+            processed_image = process_7(image);
+            break;
+        case 8:
+            processed_image = process_8(image);
+            break;
+        case 9:
+            processed_image = process_9(image);
+            break;
+        case 10:
+            processed_image = process_10(image);
+            break;
+        case 11:
+            processed_image = process_11(image);
             break;
         default:
-            cerr << "invalid choice, the image will not be processed" << endl;
+            cerr << "Invalid choice, please try again." << endl;
             continue;
         }
 
-        // write the resulting 2D vector to a new BMP image file
-        if (!write_image(output_filename, processed_image))
+        if (!write_image(output_file, processed_image))
         {
-            cerr << "error: could not create new image " << output_filename << endl;
-            continue;
+            cerr << "Error: Could not write the image file " << output_file << endl;
         }
-
-        cout << "altered the image " << input_filename << " and saved to " << output_filename << endl;
+        else
+        {
+            cout << "Processed image saved to " << output_file << " " << endl;
+        }
     }
 
-    cout << "voila! done!" << endl;
     return 0;
 }

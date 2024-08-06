@@ -11,10 +11,10 @@ PLEASE FILL OUT THIS SECTION PRIOR TO SUBMISSION
     YES
 
 - If no, please explain what you could not get to work:
-    <ANSWER>
+    Met all requirements
 
 - Did you do any optional enhancements? If so, please explain:
-    <ANSWER>
+    Yes, created a feature to prompt the user if they wanted to filter the image by a certain process (like turn it into a rose filter, or vignette, or invert colors, etc.)
 */
 
 #include <iostream>  // Includes the input-output stream library for standard I/O operations
@@ -236,7 +236,8 @@ bool write_image(string filename, const vector<vector<Pixel>> &image)
 //                                DO NOT MODIFY THE SECTION ABOVE                                    //
 //***************************************************************************************************//
 
-vector<vector<Pixel>> process_1(const vector<vector<Pixel>> &image)
+// function to process the image by inverting the colors of each pixel
+vector<vector<Pixel>> invert_colors(const vector<vector<Pixel>> &image)
 {
     int num_rows = image.size();
     int num_columns = image[0].size();
@@ -256,50 +257,122 @@ vector<vector<Pixel>> process_1(const vector<vector<Pixel>> &image)
     return processed_image;
 }
 
+// function to process the image by tinting it into sailormoon pink
+// to turn it pink, you need rgb values at 100% red, 75.3% green, 79.6% blue
+vector<vector<Pixel>> tint_pink(const vector<vector<Pixel>> &image)
+{
+    int num_rows = image.size();
+    int num_columns = image[0].size();
+    vector<vector<Pixel>> processed_image(num_rows, vector<Pixel>(num_columns));
+    for (int i = 0; i < num_rows; i++)
+    {
+        for (int j = 0; j < num_columns; j++)
+        {
+            Pixel current_pixel = image[i][j];
+            Pixel new_pixel;
+            new_pixel.red = min(255, current_pixel.red + 50);   // after many trial and error, this is the closest i can get to pink without it looking like brown/orange
+            new_pixel.green = max(0, current_pixel.green - 30); // this was previously 100, -30, -50
+            new_pixel.blue = max(0, current_pixel.blue - 50);
+            processed_image[i][j] = new_pixel;
+        }
+    }
+    return processed_image;
+}
+
+// function to apply a vignette effect to the image
+vector<vector<Pixel>> apply_vignette(const vector<vector<Pixel>> &image)
+{
+    int num_rows = image.size();
+    int num_columns = image[0].size();
+    vector<vector<Pixel>> processed_image(num_rows, vector<Pixel>(num_columns));
+    double center_x = num_columns / 2.0;
+    double center_y = num_rows / 2.0;
+    double max_distance = sqrt(center_x * center_x + center_y * center_y);
+
+    for (int i = 0; i < num_rows; i++)
+    {
+        for (int j = 0; j < num_columns; j++)
+        {
+            Pixel current_pixel = image[i][j];
+            double distance = sqrt((j - center_x) * (j - center_x) + (i - center_y) * (i - center_y));
+            double vignette_factor = 1.0 - (distance / max_distance);
+            vignette_factor = pow(vignette_factor, 2.0);
+            Pixel new_pixel;
+            new_pixel.red = current_pixel.red * vignette_factor;
+            new_pixel.green = current_pixel.green * vignette_factor;
+            new_pixel.blue = current_pixel.blue * vignette_factor;
+            processed_image[i][j] = new_pixel;
+        }
+    }
+    return processed_image;
+}
+
 int main()
 {
-    // use PATH_MAX to get the current working directory (make sure limits.h is included at top of the program or will run into errors)
+    // fetch the current working directory
     char cwd[PATH_MAX];
-    if (getcwd(cwd, sizeof(cwd)) != NULL)
+    if (getcwd(cwd, sizeof(cwd)) != NULL) // if there exists a cwd, we should grab it
     {
         cout << "current working directory: " << cwd << endl;
     }
     else
     {
-        cerr << "error: cannot get cwd" << endl;
+        cerr << "error: problem with finding the cwd" << endl; // throw an error if there is for any reason a problem with returning the path name
         return 1;
     }
 
-    // for-loop iterate over each image file to make sure it covers all 10 images in the folder
+    // ask/prompt the user on what filter to apply to the images
+    cout << "enter the number corresponding to the filter you want to use on the image:" << endl;
+    cout << "1. invert the image colors" << endl;
+    cout << "2. tint a vaporwave pink" << endl;
+    cout << "3. apply a shadow-y vignette" << endl;
+    int choice; // make sure that the user is not entering a string, and make sure that the choice is valid, as in not entering things like strings or integers above 3 or negatives
+    cin >> choice;
+
+    // iterate over each image file (this part is hardcoded, but it's fine because we know there are 10 files in the folder)
     for (int i = 1; i <= 10; ++i)
     {
         string input_filename = "sample_images/process" + to_string(i) + ".bmp";
         string output_filename = "sample_images/output" + to_string(i) + ".bmp";
 
-        // Read in BMP image file into a 2D vector
+        // read image file and turn into a 2D vector
         vector<vector<Pixel>> image = read_image(input_filename);
 
-        // sanity check if the image was read successfully
+        // check if the image was read successfully, create an error in case it doesn't read properly
         if (image.empty())
         {
-            // create an error message for edge case
-            cerr << "error, can't read this file " << input_filename << endl;
+            cerr << "error: couldn't read the image file " << input_filename << endl; // honetsly this should never happen but good habit to write this test error
             continue;
         }
 
-        // process_1 function turns input 2D vector and save that as a returned value to a new 2D vector
-        vector<vector<Pixel>> processed_image = process_1(image);
+        // process the image based on the user's choice
+        vector<vector<Pixel>> processed_image;
+        switch (choice)
+        {
+        case 1:
+            processed_image = invert_colors(image);
+            break;
+        case 2:
+            processed_image = tint_pink(image);
+            break;
+        case 3:
+            processed_image = apply_vignette(image);
+            break;
+        default:
+            cerr << "invalid choice, the image will not be processed" << endl;
+            continue;
+        }
 
-        // turn 2D vector to a new BMP image file
+        // write the resulting 2D vector to a new BMP image file
         if (!write_image(output_filename, processed_image))
         {
-            cerr << "Error: Could not write to the image file " << output_filename << endl;
+            cerr << "error: could not create new image " << output_filename << endl;
             continue;
         }
 
-        cout << "altered the image of " << input_filename << " and then saved it to " << output_filename << endl;
+        cout << "altered the image " << input_filename << " and saved to " << output_filename << endl;
     }
 
-    cout << "done!" << endl;
+    cout << "voila! done!" << endl;
     return 0;
 }

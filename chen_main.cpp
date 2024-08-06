@@ -11,7 +11,7 @@ PLEASE FILL OUT THIS SECTION PRIOR TO SUBMISSION
     YES
 
 - If no, please explain what you could not get to work:
-    Met all requirements
+    Met all requirements, debugged why i couldnt get process_10 to work, but it was because of my main function logic, then did the same for process_11
 
 - Did you do any optional enhancements? If so, please explain:
     Yes, created a feature to turn the image into a pink vaporwave tint
@@ -238,7 +238,7 @@ bool write_image(string filename, const vector<vector<Pixel>> &image)
 //                                DO NOT MODIFY THE SECTION ABOVE                                    //
 //***************************************************************************************************//
 
-// Function prototypes
+// function prototypes -- these are functions we will be using later
 vector<vector<Pixel>> read_image(string filename);
 bool write_image(string filename, const vector<vector<Pixel>> &image);
 vector<vector<Pixel>> process_1(const vector<vector<Pixel>> &image);
@@ -273,7 +273,7 @@ void display_menu()
     cout << "Enter your choice: ";
 }
 
-// Process 1: Add vignette
+// process 1: adding vignette (the measurements are from piazza, just copy them + follow python logic)
 vector<vector<Pixel>> process_1(const vector<vector<Pixel>> &image)
 {
     int num_rows = image.size();
@@ -299,7 +299,7 @@ vector<vector<Pixel>> process_1(const vector<vector<Pixel>> &image)
     return new_image;
 }
 
-// Process 2: Clarendon effect
+// process 2: clarendon effect (the scaling factor is what makes the intensity)
 vector<vector<Pixel>> process_2(const vector<vector<Pixel>> &image)
 {
     int width = image[0].size();
@@ -347,7 +347,7 @@ vector<vector<Pixel>> process_2(const vector<vector<Pixel>> &image)
     return new_image;
 }
 
-// Process 3: Grayscale
+// process 3: grayscale (copy piazza measurements + same logic, this 1 is straight forward)
 vector<vector<Pixel>> process_3(const vector<vector<Pixel>> &image)
 {
     int width = image[0].size();
@@ -367,7 +367,7 @@ vector<vector<Pixel>> process_3(const vector<vector<Pixel>> &image)
     return new_image;
 }
 
-// Process 4: Rotate 90 degrees clockwise
+// process 4: rotate 90 degrees clockwise - make sure it's NOT COUNTERCLOCKWISE
 vector<vector<Pixel>> process_4(const vector<vector<Pixel>> &image)
 {
     int width = image[0].size();
@@ -385,7 +385,7 @@ vector<vector<Pixel>> process_4(const vector<vector<Pixel>> &image)
     return new_image;
 }
 
-// Helper function: Rotate by 90 degrees
+// helper function for rotating by 90 degrees, we will call this function in process 5 so that our code is cleaner and packaged well
 vector<vector<Pixel>> rotate_by_90(const vector<vector<Pixel>> &image)
 {
     int width = image[0].size();
@@ -403,11 +403,11 @@ vector<vector<Pixel>> rotate_by_90(const vector<vector<Pixel>> &image)
     return new_image;
 }
 
-// Process 5: Rotate multiples of 90 degrees clockwise
+// process 5: rotate multiples of 90 degrees clockwise NOT COUNTERCLOCKWISE - we will actually ask the user to input how much they wanna rotate
 vector<vector<Pixel>> process_5(const vector<vector<Pixel>> &image)
 {
     int num_rotations;
-    cout << "Enter the number of 90-degree rotations (clockwise): ";
+    cout << "enter the number of 90-degree clockwise rotations: ";
     cin >> num_rotations;
 
     num_rotations = num_rotations % 4;
@@ -417,20 +417,19 @@ vector<vector<Pixel>> process_5(const vector<vector<Pixel>> &image)
     {
         result_image = rotate_by_90(result_image);
     }
-
     return result_image;
 }
 
-// Process 6: Enlarge the image in the x and y direction
+// process 6: enlarge the image in the x and y direction
 vector<vector<Pixel>> process_6(const vector<vector<Pixel>> &image)
 {
     int width = image[0].size();
     int height = image.size();
     double xscale, yscale;
 
-    cout << "Enter the scaling factor for x direction: ";
+    cout << "enter the scaling factor for x (horizontal): ";
     cin >> xscale;
-    cout << "Enter the scaling factor for y direction: ";
+    cout << "enter the scaling factor for y (vertical): ";
     cin >> yscale;
 
     int new_width = static_cast<int>(width * xscale);
@@ -444,11 +443,10 @@ vector<vector<Pixel>> process_6(const vector<vector<Pixel>> &image)
             new_image[row][col] = image[static_cast<int>(row / yscale)][static_cast<int>(col / xscale)];
         }
     }
-
     return new_image;
 }
 
-// Process 7: Convert to high contrast
+// process 7: convert to high contrast
 vector<vector<Pixel>> process_7(const vector<vector<Pixel>> &image)
 {
     int width = image[0].size();
@@ -462,6 +460,7 @@ vector<vector<Pixel>> process_7(const vector<vector<Pixel>> &image)
             Pixel p = image[row][col];
             int gray_value = (p.red + p.green + p.blue) / 3;
 
+            // where the high contrast magic is happening
             Pixel new_pixel;
             if (gray_value >= 255 / 2)
             {
@@ -479,14 +478,14 @@ vector<vector<Pixel>> process_7(const vector<vector<Pixel>> &image)
     return new_image;
 }
 
-// Process 8: Lighten the image by a scaling factor
+// process 8: lighten the image by a scaling factor
 vector<vector<Pixel>> process_8(const vector<vector<Pixel>> &image)
 {
     int width = image[0].size();
     int height = image.size();
     vector<vector<Pixel>> new_image(height, vector<Pixel>(width));
 
-    double scaling_factor = 0.5; // Change this to any desired value
+    double scaling_factor = 0.5; // change this to any desired value -- piazza post on scaling is wrong, have to guess and check to match the example picture
 
     for (int row = 0; row < height; ++row)
     {
@@ -503,14 +502,14 @@ vector<vector<Pixel>> process_8(const vector<vector<Pixel>> &image)
     return new_image;
 }
 
-// Process 9: Darken the image by a scaling factor
+// process 9: darken the image by a scaling factor
 vector<vector<Pixel>> process_9(const vector<vector<Pixel>> &image)
 {
     int width = image[0].size();
     int height = image.size();
     vector<vector<Pixel>> new_image(height, vector<Pixel>(width));
 
-    double scaling_factor = 0.5; // Change this to any desired value
+    double scaling_factor = 0.5; // change this to any desired value, i changed to 0.5 because it was closest to the example picture (the piazza measurement is wrong)
 
     for (int row = 0; row < height; ++row)
     {
@@ -527,7 +526,7 @@ vector<vector<Pixel>> process_9(const vector<vector<Pixel>> &image)
     return new_image;
 }
 
-// Process 10: Convert to black, white, red, blue, and green
+// process 10: convert to black, white, red, blue, and green - the picture is really intense, hardly see green in the example
 vector<vector<Pixel>> process_10(const vector<vector<Pixel>> &image)
 {
     int num_rows = image.size();
@@ -548,35 +547,35 @@ vector<vector<Pixel>> process_10(const vector<vector<Pixel>> &image)
 
             if (red_value + green_value + blue_value >= 550)
             {
-                // White
+                // full white
                 new_pixel.red = 255;
                 new_pixel.green = 255;
                 new_pixel.blue = 255;
             }
             else if (red_value + green_value + blue_value <= 150)
             {
-                // Black
+                // full dark
                 new_pixel.red = 0;
                 new_pixel.green = 0;
                 new_pixel.blue = 0;
             }
             else if (max_color == red_value)
             {
-                // Red
+                // red
                 new_pixel.red = 255;
                 new_pixel.green = 0;
                 new_pixel.blue = 0;
             }
             else if (max_color == green_value)
             {
-                // Green
+                // green
                 new_pixel.red = 0;
                 new_pixel.green = 255;
                 new_pixel.blue = 0;
             }
             else
             {
-                // Blue
+                // blue
                 new_pixel.red = 0;
                 new_pixel.green = 0;
                 new_pixel.blue = 255;
@@ -589,7 +588,7 @@ vector<vector<Pixel>> process_10(const vector<vector<Pixel>> &image)
     return processed_image;
 }
 
-// Process 11: Turn image into cream pink
+// process 11: turn image into sailormoon vaporwave pink
 vector<vector<Pixel>> process_11(const vector<vector<Pixel>> &image)
 {
     int num_rows = image.size();
@@ -603,7 +602,7 @@ vector<vector<Pixel>> process_11(const vector<vector<Pixel>> &image)
             Pixel current_pixel = image[i][j];
             Pixel new_pixel;
 
-            // Apply a cream pink tint
+            // apply a cream pink tint, have to guess and check the severity
             new_pixel.red = min(255, static_cast<int>(current_pixel.red * 1.1 + 100));
             new_pixel.green = min(255, static_cast<int>(current_pixel.green * 0.8 + 70));
             new_pixel.blue = min(255, static_cast<int>(current_pixel.blue * 0.8 + 70));
@@ -630,7 +629,7 @@ int main()
 
         if (quit_choice == 'Q' || quit_choice == 'q')
         {
-            cout << "Thank you for using my program, quitting!" << endl;
+            cout << "thank you, come again... quitting!" << endl;
             break;
         }
 
@@ -660,13 +659,13 @@ int main()
         }
         else
         {
-            cerr << "Invalid choice, please try again." << endl;
+            cerr << "error, invalid choice, please try again." << endl;
             continue;
         }
 
         if (choice < 1 || choice > 11)
         {
-            cerr << "Invalid choice, please try again." << endl;
+            cerr << "error, invalid choice, please try again." << endl;
             continue;
         }
 
@@ -675,7 +674,7 @@ int main()
             image = read_image(input_file);
             if (image.empty())
             {
-                cerr << "Error: Could not read the image file " << input_file << endl;
+                cerr << "error: could not interpret image " << input_file << endl;
                 continue;
             }
         }
@@ -717,17 +716,17 @@ int main()
             processed_image = process_11(image);
             break;
         default:
-            cerr << "Invalid choice, please try again." << endl;
+            cerr << "invalid choice, please try again" << endl;
             continue;
         }
 
         if (!write_image(output_file, processed_image))
         {
-            cerr << "Error: Could not write the image file " << output_file << endl;
+            cerr << "error could not write the image file " << output_file << endl;
         }
         else
         {
-            cout << "Processed image saved to " << output_file << " " << endl;
+            cout << "the altered image is now saved to " << output_file << " " << endl;
         }
     }
 

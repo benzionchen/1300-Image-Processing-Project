@@ -69,16 +69,16 @@ vector<vector<Pixel>> read_image(string filename)
 {
     // Open the binary file
     fstream stream;
-    stream.open(filename, ios::in | ios::binary); // Opens the file in binary read mode
+    stream.open(filename, ios::in | ios::binary); // opens the file in read mode
 
-    // Get the image properties
-    int file_size = get_int(stream, 2, 4);       // Reads the file size from offset 2 (4 bytes)
-    int start = get_int(stream, 10, 4);          // Reads the start offset of the pixel array from offset 10 (4 bytes)
-    int width = get_int(stream, 18, 4);          // Reads the image width from offset 18 (4 bytes)
-    int height = get_int(stream, 22, 4);         // Reads the image height from offset 22 (4 bytes)
-    int bits_per_pixel = get_int(stream, 28, 2); // Reads the bits per pixel from offset 28 (2 bytes)
+    // get the image properties and dimensions
+    int file_size = get_int(stream, 2, 4);       // reads the file size from offset 2 (4 bytes)
+    int start = get_int(stream, 10, 4);          // start offset of the pixel array from offset 10 (4 bytes)
+    int width = get_int(stream, 18, 4);          // image width from offset 18 (4 bytes)
+    int height = get_int(stream, 22, 4);         // image height from offset 22 (4 bytes)
+    int bits_per_pixel = get_int(stream, 28, 2); // bits per pixel from offset 28 (2 bytes)
 
-    // Scan lines must occupy multiples of four bytes
+    // scan lines must occupy multiples of 4-bytes
     int scanline_size = width * (bits_per_pixel / 8); // Calculates the size of each scanline (row of pixels)
     int padding = 0;
     if (scanline_size % 4 != 0)
@@ -86,13 +86,13 @@ vector<vector<Pixel>> read_image(string filename)
         padding = 4 - scanline_size % 4; // Calculates the padding needed to make the scanline size a multiple of 4
     }
 
-    // Return empty vector if this is not a valid image
+    // return empty vector if this is not a valid image
     if (file_size != start + (scanline_size + padding) * height)
     {
-        return {}; // Returns an empty vector if the file size does not match the expected size
+        return {}; // returns an empty vector if the file size does not match the expected size (this should not throw error, should just be empty...?) - remember to check
     }
 
-    // Create a vector the size of the input image
+    // create a vector the size of the input image
     vector<vector<Pixel>> image(height, vector<Pixel>(width));
 
     int pos = start;
@@ -100,30 +100,30 @@ vector<vector<Pixel>> read_image(string filename)
     // Note: BMP files store pixels from bottom to top
     for (int i = height - 1; i >= 0; i--)
     {
-        // For each column
+        // iterating on each column
         for (int j = 0; j < width; j++)
         {
-            // Go to the pixel position
+            // go to the pixel position
             stream.seekg(pos);
 
-            // Save the pixel values to the image vector
-            // Note: BMP files store pixels in blue, green, red order
+            // save the pixel values to the image vector
+            // note: BMP files store pixels in blue, green, red order (need to remember this for later)
             image[i][j].blue = stream.get();
             image[i][j].green = stream.get();
             image[i][j].red = stream.get();
 
-            // We are ignoring the alpha channel if there is one
+            // we are ignoring the alpha channel if there is one
 
-            // Advance the position to the next pixel
+            // advance the position to the next pixel
             pos = pos + (bits_per_pixel / 8);
         }
 
-        // Skip the padding at the end of each row
+        // skip the padding at each row
         stream.seekg(padding, ios::cur);
         pos = pos + padding;
     }
 
-    // Close the stream and return the image vector
+    // close the stream + return vector
     stream.close();
     return image;
 }
@@ -154,30 +154,30 @@ void set_bytes(unsigned char arr[], int offset, int bytes, int value)
  */
 bool write_image(string filename, const vector<vector<Pixel>> &image)
 {
-    // Get the image width and height in pixels
+    // get the image width and height (make sure it is in pixels)
     int width_pixels = image[0].size();
     int height_pixels = image.size();
 
-    // Calculate the width in bytes incorporating padding (4 byte alignment)
+    // calculate the width in bytes incorporating padding (4-byte alignment)
     int width_bytes = width_pixels * 3;
     int padding_bytes = 0;
     padding_bytes = (4 - width_bytes % 4) % 4;
     width_bytes = width_bytes + padding_bytes;
 
-    // Pixel array size in bytes, including padding
+    // pixel array size in bytes, including padding
     int array_bytes = width_bytes * height_pixels;
 
-    // Open a file stream for writing to a binary file
+    // open filestream to access binary file
     fstream stream;
     stream.open(filename, ios::out | ios::binary);
 
-    // If there was a problem opening the file, return false
+    // return false if the file has problems opening
     if (!stream.is_open())
     {
         return false;
     }
 
-    // Create the BMP and DIB Headers
+    // create the BMP and DIB Headers
     const int BMP_HEADER_SIZE = 14;
     const int DIB_HEADER_SIZE = 40;
     unsigned char bmp_header[BMP_HEADER_SIZE] = {0};
@@ -186,25 +186,25 @@ bool write_image(string filename, const vector<vector<Pixel>> &image)
     // BMP Header
     set_bytes(bmp_header, 0, 1, 'B');                                             // ID field
     set_bytes(bmp_header, 1, 1, 'M');                                             // ID field
-    set_bytes(bmp_header, 2, 4, BMP_HEADER_SIZE + DIB_HEADER_SIZE + array_bytes); // Size of BMP file
-    set_bytes(bmp_header, 6, 2, 0);                                               // Reserved
-    set_bytes(bmp_header, 8, 2, 0);                                               // Reserved
-    set_bytes(bmp_header, 10, 4, BMP_HEADER_SIZE + DIB_HEADER_SIZE);              // Pixel array offset
+    set_bytes(bmp_header, 2, 4, BMP_HEADER_SIZE + DIB_HEADER_SIZE + array_bytes); // size of BMP file
+    set_bytes(bmp_header, 6, 2, 0);                                               // reserved
+    set_bytes(bmp_header, 8, 2, 0);                                               // reserved
+    set_bytes(bmp_header, 10, 4, BMP_HEADER_SIZE + DIB_HEADER_SIZE);              // pixel array offset
 
     // DIB Header
     set_bytes(dib_header, 0, 4, DIB_HEADER_SIZE); // DIB header size
-    set_bytes(dib_header, 4, 4, width_pixels);    // Width of bitmap in pixels
-    set_bytes(dib_header, 8, 4, height_pixels);   // Height of bitmap in pixels
-    set_bytes(dib_header, 12, 2, 1);              // Number of color planes
-    set_bytes(dib_header, 14, 2, 24);             // Number of bits per pixel
-    set_bytes(dib_header, 16, 4, 0);              // Compression method (0=BI_RGB)
-    set_bytes(dib_header, 20, 4, array_bytes);    // Size of raw bitmap data (including padding)
-    set_bytes(dib_header, 24, 4, 2835);           // Print resolution of image (2835 pixels/meter)
-    set_bytes(dib_header, 28, 4, 2835);           // Print resolution of image (2835 pixels/meter)
-    set_bytes(dib_header, 32, 4, 0);              // Number of colors in palette
-    set_bytes(dib_header, 36, 4, 0);              // Number of important colors
+    set_bytes(dib_header, 4, 4, width_pixels);    // width of bitmap in pixels
+    set_bytes(dib_header, 8, 4, height_pixels);   // height of bitmap in pixels
+    set_bytes(dib_header, 12, 2, 1);              // number of color planes
+    set_bytes(dib_header, 14, 2, 24);             // number of bits per pixel
+    set_bytes(dib_header, 16, 4, 0);              // compression method (0=BI_RGB)
+    set_bytes(dib_header, 20, 4, array_bytes);    // size of raw bitmap data (including padding)
+    set_bytes(dib_header, 24, 4, 2835);           // print resolution of image (2835 pixels/meter)
+    set_bytes(dib_header, 28, 4, 2835);           // print resolution of image (2835 pixels/meter)
+    set_bytes(dib_header, 32, 4, 0);              // number of colors in palette
+    set_bytes(dib_header, 36, 4, 0);              // number of important colors
 
-    // Write the BMP and DIB Headers to the file
+    // write the BMP and DIB Headers to the file
     stream.write((char *)bmp_header, sizeof(bmp_header));
     stream.write((char *)dib_header, sizeof(dib_header));
 
@@ -212,12 +212,12 @@ bool write_image(string filename, const vector<vector<Pixel>> &image)
     unsigned char pixel[3] = {0};
     unsigned char padding[3] = {0};
 
-    // Pixel Array (Left to right, bottom to top, with padding)
+    // pixel Array (Left to right, bottom to top, with padding)
     for (int h = height_pixels - 1; h >= 0; h--)
     {
         for (int w = 0; w < width_pixels; w++)
         {
-            // Write the pixel (Blue, Green, Red)
+            // write the pixel (Blue, Green, Red)
             pixel[0] = image[h][w].blue;
             pixel[1] = image[h][w].green;
             pixel[2] = image[h][w].red;
@@ -227,7 +227,7 @@ bool write_image(string filename, const vector<vector<Pixel>> &image)
         stream.write((char *)padding, padding_bytes);
     }
 
-    // Close the stream and return true
+    // close the stream and return true
     stream.close();
     return true;
 }
@@ -258,42 +258,48 @@ vector<vector<Pixel>> process_1(const vector<vector<Pixel>> &image)
 
 int main()
 {
-    // Get the current working directory
+    // use PATH_MAX to get the current working directory (make sure limits.h is included at top of the program or will run into errors)
     char cwd[PATH_MAX];
     if (getcwd(cwd, sizeof(cwd)) != NULL)
     {
-        cout << "Current working directory: " << cwd << endl;
+        cout << "current working directory: " << cwd << endl;
     }
     else
     {
-        cerr << "Error: Could not get the current working directory" << endl;
+        cerr << "error: cannot get cwd" << endl;
         return 1;
     }
 
-    // File paths for input and output images
-    string input_filename = "sample_images/sample.bmp";
-    string output_filename = "sample_images/output.bmp";
-
-    // Read in BMP image file into a 2D vector
-    vector<vector<Pixel>> image = read_image(input_filename);
-
-    // Check if the image was read successfully
-    if (image.empty())
+    // for-loop iterate over each image file to make sure it covers all 10 images in the folder
+    for (int i = 1; i <= 10; ++i)
     {
-        cerr << "Error: Could not read the image file " << input_filename << endl;
-        return 1;
+        string input_filename = "sample_images/process" + to_string(i) + ".bmp";
+        string output_filename = "sample_images/output" + to_string(i) + ".bmp";
+
+        // Read in BMP image file into a 2D vector
+        vector<vector<Pixel>> image = read_image(input_filename);
+
+        // sanity check if the image was read successfully
+        if (image.empty())
+        {
+            // create an error message for edge case
+            cerr << "error, can't read this file " << input_filename << endl;
+            continue;
+        }
+
+        // process_1 function turns input 2D vector and save that as a returned value to a new 2D vector
+        vector<vector<Pixel>> processed_image = process_1(image);
+
+        // turn 2D vector to a new BMP image file
+        if (!write_image(output_filename, processed_image))
+        {
+            cerr << "Error: Could not write to the image file " << output_filename << endl;
+            continue;
+        }
+
+        cout << "altered the image of " << input_filename << " and then saved it to " << output_filename << endl;
     }
 
-    // Call process_1 function using the input 2D vector and save the result returned to a new 2D vector
-    vector<vector<Pixel>> processed_image = process_1(image);
-
-    // Write the resulting 2D vector to a new BMP image file
-    if (!write_image(output_filename, processed_image))
-    {
-        cerr << "Error: Could not write to the image file " << output_filename << endl;
-        return 1;
-    }
-
-    cout << "Image processing complete. Output written to " << output_filename << endl;
+    cout << "done!" << endl;
     return 0;
 }

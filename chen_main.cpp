@@ -30,18 +30,18 @@ using namespace std; // Use standard library names without the "std::" prefix
 //                                DO NOT MODIFY THE SECTION BELOW                                    //
 //***************************************************************************************************//
 
-// Pixel structure
+// pixel structure
 struct Pixel
 {
-    // Red, green, blue color values
+    // Red, Green, Blue color values
     int red;
     int green;
     int blue;
 };
 
 /**
- * Gets an integer from a binary stream.
- * Helper function for read_image()
+ * gets an integer from a binary stream.
+ * helper function for read_image()
  * @param stream the stream
  * @param offset the offset at which to read the integer
  * @param bytes  the number of bytes to read
@@ -49,13 +49,13 @@ struct Pixel
  */
 int get_int(fstream &stream, int offset, int bytes)
 {
-    stream.seekg(offset); // Moves the file pointer to the specified offset
-    int result = 0;       // Initializes the result to 0
-    int base = 1;         // Initializes the base multiplier to 1
+    stream.seekg(offset); // moves pointer to the specified offset
+    int result = 0;       // initializes the result to 0, start counter
+    int base = 1;         // initializes the base multiplier to 1, start counter
     for (int i = 0; i < bytes; i++)
     {
-        result = result + stream.get() * base; // Reads a byte from the stream, multiplies it by the base, and adds it to the result
-        base = base * 256;                     // Increases the base by a factor of 256 (2^8) for the next byte
+        result = result + stream.get() * base; // reads a byte from the stream, multiplies it by the base, and adds it to the result
+        base = base * 256;                     // increases the base by a factor of 256 (2^8) for the next byte
     }
     return result; // Returns the final integer value
 }
@@ -183,15 +183,15 @@ bool write_image(string filename, const vector<vector<Pixel>> &image)
     unsigned char bmp_header[BMP_HEADER_SIZE] = {0};
     unsigned char dib_header[DIB_HEADER_SIZE] = {0};
 
-    // BMP Header
+    // BMP Header properties
     set_bytes(bmp_header, 0, 1, 'B');                                             // ID field
     set_bytes(bmp_header, 1, 1, 'M');                                             // ID field
     set_bytes(bmp_header, 2, 4, BMP_HEADER_SIZE + DIB_HEADER_SIZE + array_bytes); // size of BMP file
     set_bytes(bmp_header, 6, 2, 0);                                               // reserved
-    set_bytes(bmp_header, 8, 2, 0);                                               // reserved
+    set_bytes(bmp_header, 8, 2, 0);                                               // reserved again
     set_bytes(bmp_header, 10, 4, BMP_HEADER_SIZE + DIB_HEADER_SIZE);              // pixel array offset
 
-    // DIB Header
+    // DIB Header properties
     set_bytes(dib_header, 0, 4, DIB_HEADER_SIZE); // DIB header size
     set_bytes(dib_header, 4, 4, width_pixels);    // width of bitmap in pixels
     set_bytes(dib_header, 8, 4, height_pixels);   // height of bitmap in pixels

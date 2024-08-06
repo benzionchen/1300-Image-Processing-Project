@@ -14,14 +14,14 @@ PLEASE FILL OUT THIS SECTION PRIOR TO SUBMISSION
     Met all requirements, debugged why i couldnt get process_10 to work, but it was because of my main function logic, then did the same for process_11
 
 - Did you do any optional enhancements? If so, please explain:
-    Yes, created a feature to turn the image into a pink vaporwave tint
+    Yes & no, I created a feature to turn the image into a pink vaporwave tint
 */
 
 #include <iostream>  // for standard I/O operations
 #include <vector>    // for using the vector container
 #include <fstream>   // for file operations
 #include <cmath>     // for mathematical functions
-#include <algorithm> // for std::max and std::min
+#include <algorithm> // for std::max and std::min and std::transform
 #include <string>    // for std::string
 #include <unistd.h>  // for getcwd
 #include <limits.h>  // for PATH_MAX
@@ -257,8 +257,9 @@ vector<vector<Pixel>> rotate_90_degrees(const vector<vector<Pixel>> &image);
 
 void display_menu()
 {
+    cout << "_____________________" << endl;
     cout << "Image Processing Menu" << endl;
-    cout << "1. Add vignette" << endl;
+    cout << "1. Add Vignette" << endl;
     cout << "2. Add Clarendon effect" << endl;
     cout << "3. Convert to grayscale" << endl;
     cout << "4. Rotate image 90 degrees clockwise" << endl;
@@ -270,6 +271,7 @@ void display_menu()
     cout << "10. Convert image to black, white, red, blue, and green" << endl;
     cout << "11. Turn image into cream pink" << endl;
     cout << "Q. Quit" << endl;
+    cout << "_____________________" << endl;
     cout << "Enter your choice: ";
 }
 
@@ -614,13 +616,33 @@ vector<vector<Pixel>> process_11(const vector<vector<Pixel>> &image)
     return processed_image;
 }
 
+bool ends_with(const std::string &str, const std::string &suffix)
+{
+    if (str.size() < suffix.size())
+        return false;
+    return std::equal(suffix.rbegin(), suffix.rend(), str.rbegin());
+}
+
 int main()
 {
     char quit_choice;
     int choice;
-    string input_file = "sample_images/sample.bmp";
-    string output_file = "sample_images/output.bmp";
+    string input_file, output_file;
     vector<vector<Pixel>> image;
+
+    while (true)
+    {
+        cout << "enter the your BMP filename (must end with .bmp): ";
+        cin >> input_file;
+        if (ends_with(input_file, ".bmp"))
+        {
+            break;
+        }
+        else
+        {
+            cerr << "error, filename must end with .bmp" << endl;
+        }
+    }
 
     while (true)
     {
@@ -633,11 +655,28 @@ int main()
             break;
         }
 
+        if (quit_choice == 'C' || quit_choice == 'c')
+        {
+            while (true)
+            {
+                cout << "enter your new input BMP filename (must end with .bmp): ";
+                cin >> input_file;
+                if (ends_with(input_file, ".bmp"))
+                {
+                    break;
+                }
+                else
+                {
+                    cerr << "error, filename must end with .bmp" << endl;
+                }
+            }
+            continue;
+        }
+
         if (isdigit(quit_choice))
         {
-            choice = quit_choice - '0'; // Convert char to int
+            choice = quit_choice - '0';
 
-            // Check for multi-digit choices
             if (choice == 1)
             {
                 char next_digit;
@@ -652,31 +691,41 @@ int main()
                 }
                 else
                 {
-                    // Put the next character back if it's not a valid second digit
                     cin.putback(next_digit);
                 }
             }
         }
         else
         {
-            cerr << "error, invalid choice, please try again." << endl;
+            cerr << "invalid choice, try again." << endl;
             continue;
         }
 
         if (choice < 1 || choice > 11)
         {
-            cerr << "error, invalid choice, please try again." << endl;
+            cerr << "invalid choice, try again." << endl;
             continue;
         }
 
-        if (choice != 11)
+        while (true)
         {
-            image = read_image(input_file);
-            if (image.empty())
+            cout << "enter the output BMP filename (must end with .bmp): ";
+            cin >> output_file;
+            if (ends_with(output_file, ".bmp"))
             {
-                cerr << "error: could not interpret image " << input_file << endl;
-                continue;
+                break;
             }
+            else
+            {
+                cerr << "error, the filename must end with .bmp" << endl;
+            }
+        }
+
+        image = read_image(input_file);
+        if (image.empty())
+        {
+            cerr << "error, could not read file " << input_file << endl;
+            continue;
         }
 
         vector<vector<Pixel>> processed_image;
@@ -716,17 +765,17 @@ int main()
             processed_image = process_11(image);
             break;
         default:
-            cerr << "invalid choice, please try again" << endl;
+            cerr << "invalid choice, try again." << endl;
             continue;
         }
 
         if (!write_image(output_file, processed_image))
         {
-            cerr << "error could not write the image file " << output_file << endl;
+            cerr << "error, could not write file " << output_file << endl;
         }
         else
         {
-            cout << "the altered image is now saved to " << output_file << " " << endl;
+            cout << "altered image saved as " << output_file << " " << endl;
         }
     }
 

@@ -17,10 +17,13 @@ PLEASE FILL OUT THIS SECTION PRIOR TO SUBMISSION
     <ANSWER>
 */
 
-#include <iostream>  // Includes the input-output stream library for standard I/O operations
-#include <vector>    // Includes the vector library to use the vector container
-#include <fstream>   // Includes the file stream library for file operations
-#include <cmath>     // Includes the cmath library for mathematical functions
+#include <iostream> // Includes the input-output stream library for standard I/O operations
+#include <vector>   // Includes the vector library to use the vector container
+#include <fstream>  // Includes the file stream library for file operations
+#include <cmath>    // Includes the cmath library for mathematical functions
+#include <string>
+#include <unistd.h>
+#include <limits.h>
 using namespace std; // Use standard library names without the "std::" prefix
 
 //***************************************************************************************************//
@@ -235,28 +238,62 @@ bool write_image(string filename, const vector<vector<Pixel>> &image)
 
 vector<vector<Pixel>> process_1(const vector<vector<Pixel>> &image)
 {
-    // Get the number of rows/columns from the input 2D vector (remember: num_rows is height, num_columns is width)
-
-    // Define a new 2D vector the same size as the input 2D vector
-
-    // For each of the rows in the input 2D vector
-
-    // For each of the columns in the input 2D vector
-
-    // Get the color values for the pixel located at this row and column in the input 2D vector
-
-    // Perform the operation on the color values (refer to Runestone for this)
-
-    // Save the new color values to the corresponding pixel located at this row and column in the new 2D vector
-
-    // Return the new 2D vector after the nested for loop is complete
+    int num_rows = image.size();
+    int num_columns = image[0].size();
+    vector<vector<Pixel>> processed_image(num_rows, vector<Pixel>(num_columns));
+    for (int i = 0; i < num_rows; i++)
+    {
+        for (int j = 0; j < num_columns; j++)
+        {
+            Pixel current_pixel = image[i][j];
+            Pixel new_pixel;
+            new_pixel.red = 255 - current_pixel.red;
+            new_pixel.green = 255 - current_pixel.green;
+            new_pixel.blue = 255 - current_pixel.blue;
+            processed_image[i][j] = new_pixel;
+        }
+    }
+    return processed_image;
 }
 
 int main()
 {
-    // Read in BMP image file into a 2D vector (using read_image function)
+    // Get the current working directory
+    char cwd[PATH_MAX];
+    if (getcwd(cwd, sizeof(cwd)) != NULL)
+    {
+        cout << "Current working directory: " << cwd << endl;
+    }
+    else
+    {
+        cerr << "Error: Could not get the current working directory" << endl;
+        return 1;
+    }
+
+    // File paths for input and output images
+    string input_filename = "sample_images/sample.bmp";
+    string output_filename = "sample_images/output.bmp";
+
+    // Read in BMP image file into a 2D vector
+    vector<vector<Pixel>> image = read_image(input_filename);
+
+    // Check if the image was read successfully
+    if (image.empty())
+    {
+        cerr << "Error: Could not read the image file " << input_filename << endl;
+        return 1;
+    }
 
     // Call process_1 function using the input 2D vector and save the result returned to a new 2D vector
+    vector<vector<Pixel>> processed_image = process_1(image);
 
-    // Write the resulting 2D vector to a new BMP image file (using write_image function)
+    // Write the resulting 2D vector to a new BMP image file
+    if (!write_image(output_filename, processed_image))
+    {
+        cerr << "Error: Could not write to the image file " << output_filename << endl;
+        return 1;
+    }
+
+    cout << "Image processing complete. Output written to " << output_filename << endl;
+    return 0;
 }

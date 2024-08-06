@@ -1,4 +1,4 @@
-# CSPB-1300   C++ Final Project
+# 1300 C++ Final Project
 
 This repository is a set of documents to be read before beginning your C++ Final Project. It also contains sample files and code to help you get started.
 The link to the submission page for the project will be found in the final week's Moodle page (Week 16).

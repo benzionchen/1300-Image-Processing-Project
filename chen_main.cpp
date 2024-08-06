@@ -5,10 +5,10 @@ CSPB 1300 Image Processing Application
 PLEASE FILL OUT THIS SECTION PRIOR TO SUBMISSION
 
 - Your name:
-    <ANSWER>
+    Benjamin Z. Chen
 
 - All project requirements fully met? (YES or NO):
-    <ANSWER>
+    YES
 
 - If no, please explain what you could not get to work:
     <ANSWER>
@@ -17,11 +17,11 @@ PLEASE FILL OUT THIS SECTION PRIOR TO SUBMISSION
     <ANSWER>
 */
 
-#include <iostream>
-#include <vector>
-#include <fstream>
-#include <cmath>
-using namespace std;
+#include <iostream>  // Includes the input-output stream library for standard I/O operations
+#include <vector>    // Includes the vector library to use the vector container
+#include <fstream>   // Includes the file stream library for file operations
+#include <cmath>     // Includes the cmath library for mathematical functions
+using namespace std; // Use standard library names without the "std::" prefix
 
 //***************************************************************************************************//
 //                                DO NOT MODIFY THE SECTION BELOW                                    //
@@ -43,18 +43,18 @@ struct Pixel
  * @param offset the offset at which to read the integer
  * @param bytes  the number of bytes to read
  * @return the integer starting at the given offset
- */ 
-int get_int(fstream& stream, int offset, int bytes)
+ */
+int get_int(fstream &stream, int offset, int bytes)
 {
-    stream.seekg(offset);
-    int result = 0;
-    int base = 1;
+    stream.seekg(offset); // Moves the file pointer to the specified offset
+    int result = 0;       // Initializes the result to 0
+    int base = 1;         // Initializes the base multiplier to 1
     for (int i = 0; i < bytes; i++)
-    {   
-        result = result + stream.get() * base;
-        base = base * 256;
+    {
+        result = result + stream.get() * base; // Reads a byte from the stream, multiplies it by the base, and adds it to the result
+        base = base * 256;                     // Increases the base by a factor of 256 (2^8) for the next byte
     }
-    return result;
+    return result; // Returns the final integer value
 }
 
 /**
@@ -66,31 +66,31 @@ vector<vector<Pixel>> read_image(string filename)
 {
     // Open the binary file
     fstream stream;
-    stream.open(filename, ios::in | ios::binary);
+    stream.open(filename, ios::in | ios::binary); // Opens the file in binary read mode
 
     // Get the image properties
-    int file_size = get_int(stream, 2, 4);
-    int start = get_int(stream, 10, 4);
-    int width = get_int(stream, 18, 4);
-    int height = get_int(stream, 22, 4);
-    int bits_per_pixel = get_int(stream, 28, 2);
+    int file_size = get_int(stream, 2, 4);       // Reads the file size from offset 2 (4 bytes)
+    int start = get_int(stream, 10, 4);          // Reads the start offset of the pixel array from offset 10 (4 bytes)
+    int width = get_int(stream, 18, 4);          // Reads the image width from offset 18 (4 bytes)
+    int height = get_int(stream, 22, 4);         // Reads the image height from offset 22 (4 bytes)
+    int bits_per_pixel = get_int(stream, 28, 2); // Reads the bits per pixel from offset 28 (2 bytes)
 
     // Scan lines must occupy multiples of four bytes
-    int scanline_size = width * (bits_per_pixel / 8);
+    int scanline_size = width * (bits_per_pixel / 8); // Calculates the size of each scanline (row of pixels)
     int padding = 0;
     if (scanline_size % 4 != 0)
     {
-        padding = 4 - scanline_size % 4;
+        padding = 4 - scanline_size % 4; // Calculates the padding needed to make the scanline size a multiple of 4
     }
 
     // Return empty vector if this is not a valid image
     if (file_size != start + (scanline_size + padding) * height)
     {
-        return {};
+        return {}; // Returns an empty vector if the file size does not match the expected size
     }
 
     // Create a vector the size of the input image
-    vector<vector<Pixel>> image(height, vector<Pixel> (width));
+    vector<vector<Pixel>> image(height, vector<Pixel>(width));
 
     int pos = start;
     // For each row, starting from the last row to the first
@@ -139,7 +139,7 @@ void set_bytes(unsigned char arr[], int offset, int bytes, int value)
 {
     for (int i = 0; i < bytes; i++)
     {
-        arr[offset+i] = (unsigned char)(value>>(i*8));
+        arr[offset + i] = (unsigned char)(value >> (i * 8)); // Sets each byte of the array to the corresponding byte of the value
     }
 }
 
@@ -149,7 +149,7 @@ void set_bytes(unsigned char arr[], int offset, int bytes, int value)
  * @param image    The input image to save
  * @return True if successful and false otherwise
  */
-bool write_image(string filename, const vector<vector<Pixel>>& image)
+bool write_image(string filename, const vector<vector<Pixel>> &image)
 {
     // Get the image width and height in pixels
     int width_pixels = image[0].size();
@@ -181,29 +181,29 @@ bool write_image(string filename, const vector<vector<Pixel>>& image)
     unsigned char dib_header[DIB_HEADER_SIZE] = {0};
 
     // BMP Header
-    set_bytes(bmp_header,  0, 1, 'B');              // ID field
-    set_bytes(bmp_header,  1, 1, 'M');              // ID field
-    set_bytes(bmp_header,  2, 4, BMP_HEADER_SIZE+DIB_HEADER_SIZE+array_bytes); // Size of BMP file
-    set_bytes(bmp_header,  6, 2, 0);                // Reserved
-    set_bytes(bmp_header,  8, 2, 0);                // Reserved
-    set_bytes(bmp_header, 10, 4, BMP_HEADER_SIZE+DIB_HEADER_SIZE); // Pixel array offset
+    set_bytes(bmp_header, 0, 1, 'B');                                             // ID field
+    set_bytes(bmp_header, 1, 1, 'M');                                             // ID field
+    set_bytes(bmp_header, 2, 4, BMP_HEADER_SIZE + DIB_HEADER_SIZE + array_bytes); // Size of BMP file
+    set_bytes(bmp_header, 6, 2, 0);                                               // Reserved
+    set_bytes(bmp_header, 8, 2, 0);                                               // Reserved
+    set_bytes(bmp_header, 10, 4, BMP_HEADER_SIZE + DIB_HEADER_SIZE);              // Pixel array offset
 
     // DIB Header
-    set_bytes(dib_header,  0, 4, DIB_HEADER_SIZE);  // DIB header size
-    set_bytes(dib_header,  4, 4, width_pixels);     // Width of bitmap in pixels
-    set_bytes(dib_header,  8, 4, height_pixels);    // Height of bitmap in pixels
-    set_bytes(dib_header, 12, 2, 1);                // Number of color planes
-    set_bytes(dib_header, 14, 2, 24);               // Number of bits per pixel
-    set_bytes(dib_header, 16, 4, 0);                // Compression method (0=BI_RGB)
-    set_bytes(dib_header, 20, 4, array_bytes);      // Size of raw bitmap data (including padding)                     
-    set_bytes(dib_header, 24, 4, 2835);             // Print resolution of image (2835 pixels/meter)
-    set_bytes(dib_header, 28, 4, 2835);             // Print resolution of image (2835 pixels/meter)
-    set_bytes(dib_header, 32, 4, 0);                // Number of colors in palette
-    set_bytes(dib_header, 36, 4, 0);                // Number of important colors
+    set_bytes(dib_header, 0, 4, DIB_HEADER_SIZE); // DIB header size
+    set_bytes(dib_header, 4, 4, width_pixels);    // Width of bitmap in pixels
+    set_bytes(dib_header, 8, 4, height_pixels);   // Height of bitmap in pixels
+    set_bytes(dib_header, 12, 2, 1);              // Number of color planes
+    set_bytes(dib_header, 14, 2, 24);             // Number of bits per pixel
+    set_bytes(dib_header, 16, 4, 0);              // Compression method (0=BI_RGB)
+    set_bytes(dib_header, 20, 4, array_bytes);    // Size of raw bitmap data (including padding)
+    set_bytes(dib_header, 24, 4, 2835);           // Print resolution of image (2835 pixels/meter)
+    set_bytes(dib_header, 28, 4, 2835);           // Print resolution of image (2835 pixels/meter)
+    set_bytes(dib_header, 32, 4, 0);              // Number of colors in palette
+    set_bytes(dib_header, 36, 4, 0);              // Number of important colors
 
     // Write the BMP and DIB Headers to the file
-    stream.write((char*)bmp_header, sizeof(bmp_header));
-    stream.write((char*)dib_header, sizeof(dib_header));
+    stream.write((char *)bmp_header, sizeof(bmp_header));
+    stream.write((char *)dib_header, sizeof(dib_header));
 
     // Initialize pixel and padding
     unsigned char pixel[3] = {0};
@@ -218,7 +218,7 @@ bool write_image(string filename, const vector<vector<Pixel>>& image)
             pixel[0] = image[h][w].blue;
             pixel[1] = image[h][w].green;
             pixel[2] = image[h][w].red;
-            stream.write((char*)pixel, 3);
+            stream.write((char *)pixel, 3);
         }
         // Write the padding bytes
         stream.write((char *)padding, padding_bytes);
@@ -233,19 +233,30 @@ bool write_image(string filename, const vector<vector<Pixel>>& image)
 //                                DO NOT MODIFY THE SECTION ABOVE                                    //
 //***************************************************************************************************//
 
+vector<vector<Pixel>> process_1(const vector<vector<Pixel>> &image)
+{
+    // Get the number of rows/columns from the input 2D vector (remember: num_rows is height, num_columns is width)
 
-//
-// YOUR FUNCTION DEFINITIONS HERE
-//
+    // Define a new 2D vector the same size as the input 2D vector
 
+    // For each of the rows in the input 2D vector
+
+    // For each of the columns in the input 2D vector
+
+    // Get the color values for the pixel located at this row and column in the input 2D vector
+
+    // Perform the operation on the color values (refer to Runestone for this)
+
+    // Save the new color values to the corresponding pixel located at this row and column in the new 2D vector
+
+    // Return the new 2D vector after the nested for loop is complete
+}
 
 int main()
 {
-    
-    //
-    // YOUR CODE HERE
-    //
-	cout << "\n\n\nThis line should be your own code!\n\n\n";
+    // Read in BMP image file into a 2D vector (using read_image function)
 
-    return 0;
+    // Call process_1 function using the input 2D vector and save the result returned to a new 2D vector
+
+    // Write the resulting 2D vector to a new BMP image file (using write_image function)
 }
